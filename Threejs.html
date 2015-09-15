@@ -24,67 +24,79 @@
   <body>
    
     <script>
-        var scene = new THREE.Scene(); // Create a Three.js scene object.
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); // Define the perspective camera's attributes.
+      var scene = new THREE.Scene(); // Create a Three.js scene object.
+	    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); // Define the perspective camera's attributes.
 
-    var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer(); // Fallback to canvas renderer, if necessary.
-    renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the WebGL viewport.
-    document.body.appendChild(renderer.domElement); // Append the WebGL viewport to the DOM.
+	    var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer(); // Fallback to canvas renderer, if necessary.
+	    renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the WebGL viewport.
+	    document.body.appendChild(renderer.domElement); // Append the WebGL viewport to the DOM.
 
-    var geometry = new THREE.CubeGeometry(10, 20, 20); // Create a 20 by 20 by 20 cube.
-    var material = new THREE.MeshBasicMaterial({ color: 0x0000FF }); // Skin the cube with 100% blue.
-    var cube = new THREE.Mesh(geometry, material); // Create a mesh based on the specified geometry (cube) and material (blue skin).
-    scene.add(cube); // Add the cube at (0, 0, 0).
+	    var geometry = new THREE.CubeGeometry(10, 20, 20); // Create a 20 by 20 by 20 cube.
+	    var material = new THREE.MeshBasicMaterial({ color: 0x0000FF }); // Skin the cube with 100% blue.
+	    var cube = new THREE.Mesh(geometry, material); // Create a mesh based on the specified geometry (cube) and material (blue skin).
+	    // scene.add(cube); // Add the cube at (0, 0, 0).
 
 
-    // camera position - starts at center x=0, y=0, -z is distance from the plane
-    camera.position.z = 90;// Move the camera away from the origin, down the positive z-axis.
+	    // camera position - starts at center x=0, y=0, -z is distance from the plane
+	    camera.position.z = 90;// Move the camera away from the origin, down the positive z-axis.
 
-    camera.position.x = 10;
-    console.log(camera.position);
-    var render = function () {
-      cube.rotation.x += 0.01; // Rotate the sphere by a small amount about the x- and y-axes.
-      // cube.rotation.y += 0.01;
+	    camera.position.x = 10;
+	    console.log(camera.position);
+	    var render = function () {
+	      cube.rotation.x += 0.01; // Rotate the sphere by a small amount about the x- and y-axes.
+	      // cube.rotation.y += 0.01;
 
-      renderer.render(scene, camera); // Each time we change the position of the cube object, we must re-render it.
-      requestAnimationFrame(render); // Call the render() function up to 60 times per second (i.e., up to 60 animation frames per second).
-    };
-    var pointLight = new THREE.PointLight(0xFFFFFF); // Set the color of the light source (white).
-    pointLight.position.set(100, 100, 250); // Position the light source at (x, y, z).
-    scene.add(pointLight); // Add the light source to the scene.
+	      renderer.render(scene, camera); // Each time we change the position of the cube object, we must re-render it.
+	      requestAnimationFrame(render); // Call the render() function up to 60 times per second (i.e., up to 60 animation frames per second).
+	    };
+    	
+		  var geom = new THREE.PlaneGeometry( 5, 20 );
+			var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+			var plane = new THREE.Mesh( geom, material );
+			scene.add( plane );
+			console.log(plane);
 
-    render(); 
+		  var mouse = {x:0,y:0}
+		  document.addEventListener("mousedown", function (event){
+		    mouse.x = event.x;
+		    mouse.y = event.y;
+		  });
 
-      var mouse = {x:0,y:0}
-      document.addEventListener("mousedown", function (event){
-        mouse.x = event.x;
-        mouse.y = event.y;
-        console.log("mouseDown", {'x':event.x,'y':event.y});
-      });
-      document.addEventListener("mousemove", function (event){
-        if (event.which ===1 ){
-          if (event.x > mouse.x){
-            mouse.x=event.x;
-            camera.position.x -= 1;
-          }
-          if (event.x < mouse.x){
-            camera.position.x += 1;
-            mouse.x=event.x;
-          }
-          if (event.y > mouse.y){
-            mouse.y=event.y;
-            camera.position.y += 1;
-          }
-          if (event.y < mouse.y){
-            camera.position.y -= 1;
-            mouse.y=event.y;
-          }
-        }
-      });
-      document.addEventListener("wheel", function (event) {
-        if (event.wheelDelta > 0) { camera.position.z += 10; }
-        if (event.wheelDelta < 0) { camera.position.z -= 10; }
-      });
+		  //Pan mapped to middle mouse button to match AUTOCAD
+		  document.addEventListener("mousemove", function (event){
+		    if (event.which ===2 ){
+		      if (event.x > mouse.x){
+		        mouse.x=event.x;
+		        camera.position.x -= 1;
+		      }
+		      if (event.x < mouse.x){
+		        camera.position.x += 1;
+		        mouse.x=event.x;
+		      }
+		      if (event.y > mouse.y){
+		        mouse.y=event.y;
+		        camera.position.y += 1;
+		      }
+		      if (event.y < mouse.y){
+		        camera.position.y -= 1;
+		        mouse.y=event.y;
+		      }
+		    }
+
+		    //if the shift key is held while click and hold, allow perpsective rotation at same distance to focal point.
+		    if (event.which === 1 && event.shiftKey){
+		    	console.log("look at")
+		    	camera.lookAt(0,0,90);
+
+		    }
+
+		  });
+
+		  //add event listener to allow mouse wheel to zoom in and out.
+		  document.addEventListener("wheel", function (event) {
+		    if (event.wheelDelta > 0) { camera.position.z += 10; }
+		    if (event.wheelDelta < 0) { camera.position.z -= 10; }
+  		});
    
 
       // Start the rendering of the animation frames.
