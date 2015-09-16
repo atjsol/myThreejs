@@ -24,37 +24,38 @@
   <body>
    
     <script>
-      var scene = new THREE.Scene(); // Create a Three.js scene object.
-	    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); // Define the perspective camera's attributes.
+			var scene = new THREE.Scene();
 
-	    var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer(); // Fallback to canvas renderer, if necessary.
-	    renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the WebGL viewport.
-	    document.body.appendChild(renderer.domElement); // Append the WebGL viewport to the DOM.
+			var camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
+			camera.position.z = 100;
+			scene.add( camera );
 
-	    var geometry = new THREE.CubeGeometry(10, 20, 20); // Create a 20 by 20 by 20 cube.
-	    var material = new THREE.MeshBasicMaterial({ color: 0x0000FF }); // Skin the cube with 100% blue.
-	    var cube = new THREE.Mesh(geometry, material); // Create a mesh based on the specified geometry (cube) and material (blue skin).
-	    // scene.add(cube); // Add the cube at (0, 0, 0).
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild( renderer.domElement );
+
+			// geometry
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push( new THREE.Vector3( 0, 5, 0 ) );
+			geometry.vertices.push( new THREE.Vector3( 5, -5, -2 ) );
+			geometry.vertices.push( new THREE.Vector3( -5, -5, 2 ) );
+			geometry.vertices.push( new THREE.Vector3( -20, -20, 2 ) );
+			geometry.vertices.push( new THREE.Vector3( 0, 5, 0 ) ); // close the loop - super important
 
 
-	    // camera position - starts at center x=0, y=0, -z is distance from the plane
-	    camera.position.z = 90;// Move the camera away from the origin, down the positive z-axis.
+			geometry.computeFaceNormals();
 
-	    camera.position.x = 10;
-	    console.log(camera.position);
-	    var render = function () {
-	      cube.rotation.x += 0.01; // Rotate the sphere by a small amount about the x- and y-axes.
-	      // cube.rotation.y += 0.01;
+			// material
+			var material = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 1 } );
 
-	      renderer.render(scene, camera); // Each time we change the position of the cube object, we must re-render it.
-	      requestAnimationFrame(render); // Call the render() function up to 60 times per second (i.e., up to 60 animation frames per second).
-	    };
-    	
-		  var geom = new THREE.PlaneGeometry( 5, 20 );
-			var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
-			var plane = new THREE.Mesh( geom, material );
-			scene.add( plane );
-			console.log(plane);
+			// line - wrap the object with the material
+			var line = new THREE.Line( geometry, material );
+
+			//add the completed object to the scene
+			scene.add( line );
+
+
+			renderer.render( scene, camera );
 
 		  var mouse = {x:0,y:0}
 		  document.addEventListener("mousedown", function (event){
@@ -85,9 +86,9 @@
 
 		    //if the shift key is held while click and hold, allow perpsective rotation at same distance to focal point.
 		    if (event.which === 1 && event.shiftKey){
-		    	console.log("look at")
-		    	camera.lookAt(0,0,90);
-
+		    	//TODO:  center the camera on the origin 
+		    	//console.log("look at")
+		    	
 		    }
 
 		  });
@@ -99,104 +100,7 @@
   		});
    
 
-      // Start the rendering of the animation frames.
-      // var scene = new THREE.Scene();
-      // var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-      // var renderer = new THREE.WebGLRenderer();
-      // renderer.setSize(window.innerWidth, window.innerHeight);
-      // document.body.appendChild(renderer.domElement);
-
-      // var material = new THREE.LineBasicMaterial({
-      //     color: 0x0000ff
-      // });
-
-      // // Our Javascript will go here.
-      // ////function setLine (x, y, z){}
-
-
-      // //add the thing that we want
-      // //scene.add();
-
-      // //create a shape
-      // // var something1 = new THREE.Geometry();
-
-      // //push in point values for your object.
-      // // something1.vertices.push(
-      //     // new THREE.Vector3(x, y, z),
-      //     // new THREE.Vector3(x, y, z),
-      //     // new THREE.Vector3(x, y, z)
-      // //);
-
-      // //something1.faces.push(new THREE.Face3(0, 1, 2));
-
-      // //view frustum - space between two planes in a cone like shape where the one point is the camera -> near clipping plane -> frustum -> far clipping plane
-      // //only the frustum is viewable - things between camera and near clipping plane are not rendered.  Things after the far clipping plane are not rendered
-
-      // var geom = new THREE.Geometry();
-      // var v1 = new THREE.Vector3(0, 0, 0);
-      // var v2 = new THREE.Vector3(5, 5, 0);
-      // var v3 = new THREE.Vector3(5, 5, 5);
-
-      // geom.vertices.push(v1);
-      // geom.vertices.push(v2);
-      // geom.vertices.push(v3);
-
-      // geom.faces.push(new THREE.Face3(0, 1, 2));
-      // geom.computeFaceNormals();
-      
-
-      // //make a line here for example. This seems like it is required - must use line basic material.
-      // var lineMesh = new THREE.LineBasicMaterial({
-      //   color: 0x000ff
-      // });
-
-
-      // //sets up an object points
-      // var line = new THREE.Geometry();
-      // var vert1 = new THREE.Vector3(10,10,0);
-      // var vert2 = new THREE.Vector3(20,10,0);
-      // var vert3 = new THREE.Vector3(30,10,0);
-      // //this seems like it is similar to SVG - add point to connect to sequentally; will not connect first point to last point 
-      // line.vertices.push(vert1,vert2,vert3);
-      // var lineTotal = new THREE.Line(line, lineMesh); 
-      // scene.add(lineTotal);
-
-      // var object = new THREE.Mesh(geom, new THREE.MeshNormalMaterial());
-
-      // object.position.z = -100;//move a bit back - size of 500 is a bit big
-      // object.rotation.y = -Math.PI * .5;//triangle is pointing in depth, rotate it -90 degrees on Y
-
-      // scene.add(object);
-      // var wireFrame = new THREE.WireframeHelper(object, "rgb(255,0,0)");
-      // scene.add(wireFrame);
-      // //set the Camera Position
-      // camera.position.z = 1;
-
-      // // var something = new THREE.Mesh(some shape to make, some mesh material
-      // // something.rotation.x or something.rotation.y  to rotate
-
-      // //start the render process with request animation frame.
-      // function render() {
-      //     requestAnimationFrame(render);
-      //     renderer.render(scene, camera);
-      // }
-      // render();
-
-
-
-
-
-
-
       // function addMouseControl() {
-      //     document.addEventListener("wheel", function (event) {
-      //         if (event.wheelDelta > 0) { camera.position.z += 10; }
-      //         if (event.wheelDelta < 0) { camera.position.z -= 10; }
-      //     });
-      //     document.addEventListener("drag", function (event) {
-      //         console.log(event);
-      //     });
 
       // };
 
