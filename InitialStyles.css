@@ -5,11 +5,22 @@ body {
 
 canvas {
     position:absolute;
-    width: 100%;
-    height: 90%;
+    width: vWidth * 100%;
+    height: vHeight * 90%;
 }
-td {
-    border: 1px solid red;
-    height: 10%
-}
+
+
 #map { height: 100%; }
+#palette { }
+/* The map and palette are set off screen so they will not be rendered - performance*/ 
+/* Set the threejs canvas, google map and palette all the same height width*/
+.off-screen {
+ position: absolute !important;
+ top: -9999px !important;
+ left: -9999px !important;
+}
+}
+.views { 
+  height : 500px;
+  width : 500px;
+}

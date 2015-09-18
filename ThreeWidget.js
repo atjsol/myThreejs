@@ -15,9 +15,26 @@ camera.add( light );
 
 var group = new THREE.Group();
 group.position.y = 0;
-scene.add( group )
+scene.add( group );
+
+var objectTracker = {};
 
 var outlinePoints = [];
+
+window.addEventListener( 'resize', onWindowResize, false );
+
+function onWindowResize() {
+
+  windowHalfX = window.innerWidth / 2;
+  windowHalfY = window.innerHeight / 2;
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  if ( webglRenderer ) webglRenderer.setSize( window.innerWidth, window.innerHeight );
+  if ( canvasRenderer ) canvasRenderer.setSize( window.innerWidth, window.innerHeight );
+
+}
 
 
 function randomShape (sides){
@@ -46,6 +63,7 @@ function drawCenter(){
 // drawCenter();
 
 function axisZ(spacing, rows){
+
 	spacing = spacing ? spacing : 20;
 	rows = rows ? rows : 10;
 	var material = new THREE.LineBasicMaterial({
@@ -67,6 +85,23 @@ function axisZ(spacing, rows){
 	}
 }
 axisZ();
+//zTrack will create a cursor that tracks on the xz plane at y=0
+function zTrack () {
+  var cursorShape = new THREE.Geometry();
+  cursorShape.vertices.push(new THREE.Vector3(-5, 0, 5));
+  cursorShape.vertices.push(new THREE.Vector3(0, 0, 0));
+  cursorShape.vertices.push(new THREE.Vector3(5, 0, 5));
+
+  var material = new THREE.LineBasicMaterial({
+    color: 0xff9999,
+    linejoin:"miter",
+  });
+
+  var cursor = new THREE.Line( cursorShape, material );
+  scene.add( cursor );
+
+};
+zTrack();
 
 
 // var outline = new THREE.Shape( outlinePoints );
@@ -88,30 +123,33 @@ function addShape( shape, extrudeSettings, color, x, y, z, rx, ry, rz, s ) {
 		// var geometry = new THREE.ShapeGeometry( shape );
 
 		// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { side: THREE.DoubleSide} ) );
-		// mesh.position.set( x, y, z - 175 );
+		// mesh.position.set( x, y, z  );
 		// mesh.rotation.set( rx, ry, rz );
 		// mesh.scale.set( s, s, s );
 		// group.add( mesh );
 
 		// // flat shape
 
-		var geometry = new THREE.ShapeGeometry( shape );
+		// var geometry = new THREE.ShapeGeometry( shape );
 
-		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
-		mesh.position.set( x, y, z);
-		mesh.rotation.set( rx, ry, rz );
-		mesh.scale.set( s, s, s );
-		group.add( mesh );
-
-		// 3d shape
-
-		// var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-
-		// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color } ) );
-		// mesh.position.set( x, y, z );
+		// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
+		// mesh.position.set( x, y, z);
 		// mesh.rotation.set( rx, ry, rz );
 		// mesh.scale.set( s, s, s );
 		// group.add( mesh );
+
+		// 3d shape
+
+		var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color } ) );
+		mesh.position.set( x, y, z );
+		mesh.rotation.set( rx, ry, rz );
+		mesh.scale.set( s, s, s );
+		nameObj(mesh);
+    group.add( mesh );
+
+    console.log(group);
 
 		// solid line
 
@@ -154,7 +192,9 @@ function animate (){
 	renderer.render( scene, camera );
 	requestAnimationFrame(animate);
 }
-
+function toRad(degrees){
+  return degrees*Math.PI/180;
+}
 function addMouseControl() {
 	//orbit controls taken from http://www.smartjava.org/ltjs/chapter-05/03-basic-2d-geometries-shape.html
 	controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -167,8 +207,12 @@ addMouseControl();
 
 var mouse = {x:0, y:0};
 window.addEventListener("mousemove", function (event){
+  mouse.deltaX = mouse.x - event.x;
+  mouse.deltaY = mouse.y - event.y;
 	mouse.x = event.x;
 	mouse.y = event.y;
+  mouse.movementX = event.movementX;
+  mouse.movementY = event.movementY; 
 	mouse.normalX = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.normalY = - ( event.clientY / window.innerHeight ) * 2 + 1;
 });
@@ -176,31 +220,40 @@ window.addEventListener("mousemove", function (event){
 var shapeQue = [];
 var shapeNum = 0;
 
+function nameObj (object){
+  var name = prompt("Please name this Object", "North Roof");
+  objectTracker[name]=object; 
+}
+
+
 window.addEventListener("keyup", function (event){
 	
 
 	if (event.which === 65 ){ // a key
 		shapeQue[shapeNum] = shapeQue[shapeNum] === undefined ? [] : shapeQue[shapeNum];
-			shapeQue[shapeNum].push(new THREE.Vector2(mouse.normalX*100, mouse.normalY*100));
+		shapeQue[shapeNum].push(new THREE.Vector2(mouse.normalX*100, mouse.normalY*100));
 	}
- 	if (event.which === 13 ){ // enter key
-			shapeNum++;
-			shapeQue.forEach(function (outline){
-				
-				var newOutline =  new THREE.Shape();
-				// set initial xy
-				
-				outline.forEach(function (coordinates, i) {
-					console.log(coordinates);
-					if (i === 0){
-						newOutline.moveTo(coordinates.x,coordinates.y);
-						
-					} else {
-						newOutline.lineTo(coordinates.x, coordinates.y);
 
-					}
-				});
-				addShape(newOutline, extrudeSettings, 0xf08000, 0, 20, 0, Math.PI*68/180, 0, 0, 1 );
+  if (event.which ===32 ) {//spacebar - Rotation of object
+    objectTracker.one.rotation.set(toRad(mouse.deltaX), 0 , toRad(mouse.deltaY));
+  }
+
+ 	if (event.which === 13 ){ // enter key
+		shapeNum++;
+		shapeQue.forEach(function (outline){
+			
+			var newOutline =  new THREE.Shape();
+			// set initial xy
+			
+			outline.forEach(function (coordinates, i) {
+				console.log(coordinates);
+				if (i === 0){
+					newOutline.moveTo(coordinates.x,coordinates.y);
+				} else {
+					newOutline.lineTo(coordinates.x, coordinates.y);
+				}
 			});
+			addShape(newOutline, extrudeSettings, 0xf08000, 0, 20, 0, Math.PI*68/180, 0, 0, 1 );
+		});
 	}
 });
