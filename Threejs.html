@@ -23,10 +23,46 @@
 	        border: 1px solid red;
 	        height: 10%
 	    }
+	    #map { height: 100%; }
 	  </style>
 	</head>
   <body>
-   
+  <div id="map"></div>
+   	<script 
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCcVU9RbmbSBnWWx1RWXDell4hq5tiEIY&callback=initMap">
+    </script>
+    <script>
+	    document.addEventListener("DOMContentLoaded", function(event) { 
+
+	    	var map;
+				window.initMap = function () {
+					var address = " 444 De Haro, San Francisco, CA";
+					
+				  map = new google.maps.Map(document.getElementById('map'), {
+				    center: {lat: -34.397, lng: 150.644},
+				    zoom: 20,
+				    MapTypeControlOptions:{mapTypeIds:["SATELLITE"]}
+				  });
+				  var geocoder = new google.maps.Geocoder();
+				  var address = "444 De Haro, San Francisco, CA";
+				  function geocodeAddress(geocoder, resultsMap) {
+					  // var address = document.getElementById('address').value;
+					  geocoder.geocode({'address': address}, function(results, status) {
+					    if (status === google.maps.GeocoderStatus.OK) {
+					      resultsMap.setCenter(results[0].geometry.location);
+					      var marker = new google.maps.Marker({
+					        map: resultsMap,
+					        position: results[0].geometry.location
+					      });
+					    } else {
+					      alert('Geocode was not successful for the following reason: ' + status);
+					    }
+					  });
+					}
+					geocodeAddress(geocoder, map);
+				}
+			});
+    </script>
     <script>
 			var scene = new THREE.Scene();
 
@@ -82,14 +118,18 @@
 					color: 0x0000ff
 				});
 				var offsetCenter = spacing * rows/2
-				var geometry = new THREE.Geometry();
-				for (var i = 0; i < rows; i ++){
-					geometry.vertices.push(new THREE.Vector3(spacing * i - offsetCenter, 0, -100));
-					geometry.vertices.push(new THREE.Vector3(spacing * i - offsetCenter, 0, 100));
-					geometry.vertices.push(new THREE.Vector3(-100, 0 , spacing * i - offsetCenter));
-					geometry.vertices.push(new THREE.Vector3(+100, 0 , spacing * i - offsetCenter));
-					var line = new THREE.Line( geometry, material );
-					scene.add( line );
+				for (var i = 0; i <= rows; i ++){
+					var vert = new THREE.Geometry();
+					vert.vertices.push(new THREE.Vector3(spacing * i - offsetCenter, 0, -100));
+					vert.vertices.push(new THREE.Vector3(spacing * i - offsetCenter, 0, 100));
+					var lineV = new THREE.Line( vert, material );
+					scene.add( lineV );
+
+					var horiz = new THREE.Geometry();
+					horiz.vertices.push(new THREE.Vector3(-100, 0 , spacing * i - offsetCenter));
+					horiz.vertices.push(new THREE.Vector3(+100, 0 , spacing * i - offsetCenter));
+					var lineH = new THREE.Line(horiz, material);
+					scene.add( lineH );
 				}
 			}
 			axisZ();
@@ -121,23 +161,23 @@
 
 					// // flat shape
 
-					// var geometry = new THREE.ShapeGeometry( shape );
+					var geometry = new THREE.ShapeGeometry( shape );
 
-					// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
-					// mesh.position.set( x, y, z);
-					// mesh.rotation.set( rx, ry, rz );
-					// mesh.scale.set( s, s, s );
-					// group.add( mesh );
-
-					// 3d shape
-
-					var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-
-					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color } ) );
-					mesh.position.set( x, y, z );
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
+					mesh.position.set( x, y, z);
 					mesh.rotation.set( rx, ry, rz );
 					mesh.scale.set( s, s, s );
 					group.add( mesh );
+
+					// 3d shape
+
+					// var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+					// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color } ) );
+					// mesh.position.set( x, y, z );
+					// mesh.rotation.set( rx, ry, rz );
+					// mesh.scale.set( s, s, s );
+					// group.add( mesh );
 
 					// solid line
 
