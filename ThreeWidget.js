@@ -61,13 +61,21 @@ function drawCenter(){
 	group.add( mesh );		
 }
 // drawCenter();
+function setXZPlane(planeX, planeY){
+  var planeXY = new THREE.PlaneGeometry(planeX, planeY, 2);
+  var material = new THREE.MeshBasicMaterial({color:0x0022ff, side: THREE.DoubleSide})
+  var plane = new THREE.Mesh(planeXY, material);
+  plane.rotation.set(toRad(90),0,0);
 
+  scene.add(plane);
+};
+setXZPlane(200,200)
 function axisZ(spacing, rows){
 
 	spacing = spacing ? spacing : 20;
 	rows = rows ? rows : 10;
 	var material = new THREE.LineBasicMaterial({
-		color: 0x0000ff
+		color: 0xff00ff
 	});
 	var offsetCenter = spacing * rows/2
 	for (var i = 0; i <= rows; i ++){
@@ -130,26 +138,26 @@ function addShape( shape, extrudeSettings, color, x, y, z, rx, ry, rz, s ) {
 
 		// // flat shape
 
-		// var geometry = new THREE.ShapeGeometry( shape );
+		var geometry = new THREE.ShapeGeometry( shape );
 
-		// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
-		// mesh.position.set( x, y, z);
-		// mesh.rotation.set( rx, ry, rz );
-		// mesh.scale.set( s, s, s );
-		// group.add( mesh );
+		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
+		mesh.position.set( x, y, z);
+		mesh.rotation.set( rx, ry, rz );
+		mesh.scale.set( s, s, s );
+		group.add( mesh );
 
 		// 3d shape
 
-		var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+		// var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 
-		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color } ) );
-		mesh.position.set( x, y, z );
-		mesh.rotation.set( rx, ry, rz );
-		mesh.scale.set( s, s, s );
-		nameObj(mesh);
-    group.add( mesh );
+		// var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color } ) );
+		// mesh.position.set( x, y, z );
+		// mesh.rotation.set( rx, ry, rz );
+		// mesh.scale.set( s, s, s );
+		// nameObj(mesh);
+  //   group.add( mesh );
 
-    console.log(group);
+  //   console.log(group);
 
 		// solid line
 
@@ -187,73 +195,16 @@ function addShape( shape, extrudeSettings, color, x, y, z, rx, ry, rz, s ) {
 }
 
 //if you do not have an animation loop, it will not work;
+var raycaster = new THREE.Raycaster();
+console.log(raycaster);
 function animate (){
-	
+	raycaster.setFromCamera(mouse, camera);
 	renderer.render( scene, camera );
 	requestAnimationFrame(animate);
 }
 function toRad(degrees){
   return degrees*Math.PI/180;
 }
-function addMouseControl() {
-	//orbit controls taken from http://www.smartjava.org/ltjs/chapter-05/03-basic-2d-geometries-shape.html
-	controls = new THREE.OrbitControls( camera, renderer.domElement );
-	controls.enableDamping = true;
-	controls.dampingFactor = 0.25;
-	controls.enableZoom = true;
-};
+
 animate();
 addMouseControl();
-
-var mouse = {x:0, y:0};
-window.addEventListener("mousemove", function (event){
-  mouse.deltaX = mouse.x - event.x;
-  mouse.deltaY = mouse.y - event.y;
-	mouse.x = event.x;
-	mouse.y = event.y;
-  mouse.movementX = event.movementX;
-  mouse.movementY = event.movementY; 
-	mouse.normalX = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.normalY = - ( event.clientY / window.innerHeight ) * 2 + 1;
-});
-
-var shapeQue = [];
-var shapeNum = 0;
-
-function nameObj (object){
-  var name = prompt("Please name this Object", "North Roof");
-  objectTracker[name]=object; 
-}
-
-
-window.addEventListener("keyup", function (event){
-	
-
-	if (event.which === 65 ){ // a key
-		shapeQue[shapeNum] = shapeQue[shapeNum] === undefined ? [] : shapeQue[shapeNum];
-		shapeQue[shapeNum].push(new THREE.Vector2(mouse.normalX*100, mouse.normalY*100));
-	}
-
-  if (event.which ===32 ) {//spacebar - Rotation of object
-    objectTracker.one.rotation.set(toRad(mouse.deltaX), 0 , toRad(mouse.deltaY));
-  }
-
- 	if (event.which === 13 ){ // enter key
-		shapeNum++;
-		shapeQue.forEach(function (outline){
-			
-			var newOutline =  new THREE.Shape();
-			// set initial xy
-			
-			outline.forEach(function (coordinates, i) {
-				console.log(coordinates);
-				if (i === 0){
-					newOutline.moveTo(coordinates.x,coordinates.y);
-				} else {
-					newOutline.lineTo(coordinates.x, coordinates.y);
-				}
-			});
-			addShape(newOutline, extrudeSettings, 0xf08000, 0, 20, 0, Math.PI*68/180, 0, 0, 1 );
-		});
-	}
-});
